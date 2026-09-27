@@ -1,0 +1,6 @@
+{
+  "name": "ASIS SELLER",
+  "description": "Dashboard Cerdas untuk Mengelola Profit, Harga, Iklan & Operasional Shopee Seller",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
