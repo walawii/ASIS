@@ -33,11 +33,54 @@
 
 export interface DbUser {
   id: string;
+  name: string;
   email: string;
-  fullName: string;
-  role: 'owner' | 'finance' | 'operator' | 'admin';
+  phone: string;
+  passwordHash: string;
+  emailVerified: boolean;
+  role: 'USER' | 'ADMIN';
+  subscriptionPlan: 'LITE' | 'PLUS' | 'KIT';
+  subscriptionStatus: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
   createdAt: string;
   updatedAt: string;
+}
+
+export interface DbPlan {
+  id: string;
+  code: 'LITE' | 'PLUS' | 'KIT';
+  name: string;
+  tagline: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  isPopular: boolean;
+  maxStores: number;
+  maxProducts: number;
+  allowedViews: string[];
+  features: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DbEmailVerificationToken {
+  id: string;
+  userId: string;
+  email: string;
+  token: string;
+  expiresAt: string;
+  usedAt?: string;
+  createdAt: string;
+}
+
+export interface DbAuthSession {
+  id: string;
+  userId: string;
+  token: string;
+  role: 'USER' | 'ADMIN';
+  ipAddress?: string;
+  userAgent?: string;
+  expiresAt: string;
+  createdAt: string;
 }
 
 export interface DbStore {
@@ -52,8 +95,26 @@ export interface DbStore {
   updatedAt: string;
 }
 
+export interface DbStoreConnection {
+  id: string;
+  userId: string;
+  platform: 'SHOPEE';
+  shopId: string;
+  shopName: string;
+  region: string;
+  status: 'NOT_CONNECTED' | 'CONNECTING' | 'CONNECTED' | 'TOKEN_EXPIRED' | 'REAUTH_REQUIRED';
+  accessTokenEncrypted?: string;
+  refreshTokenEncrypted?: string;
+  accessTokenExpiresAt?: string;
+  refreshTokenExpiresAt?: string;
+  connectedAt?: string;
+  updatedAt: string;
+  lastSyncAt?: string;
+}
+
 export interface DbProduct {
   id: string;
+  userId?: string;
   storeId: string;
   sku: string;
   name: string;
@@ -350,9 +411,13 @@ export interface DbNotification {
 export interface DbSubscription {
   id: string;
   userId: string;
-  tier: 'lite' | 'plus' | 'kit';
-  status: 'active' | 'cancelled' | 'expired';
+  planCode: 'LITE' | 'PLUS' | 'KIT';
+  status: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
   billingCycle: 'monthly' | 'yearly';
+  amount: number;
   currentPeriodStart: string;
   currentPeriodEnd: string;
+  cancelledAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }

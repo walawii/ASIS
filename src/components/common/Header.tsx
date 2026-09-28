@@ -35,10 +35,26 @@ export const Header: React.FC = () => {
     currentView,
     shopeeConnectionState,
     setShopeeModalOpen,
+    currentUser,
+    logout,
+    syncShopee,
+    isSimulationMode,
+    userStoreConnections,
+    plans,
   } = useApp();
 
   const [storeDropdownOpen, setStoreDropdownOpen] = useState(false);
   const [alertsPopoverOpen, setAlertsPopoverOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const activePlan = plans.find((p) => p.code === currentUser?.subscriptionPlan) || plans[0];
+
+  const handleQuickSync = async () => {
+    setIsSyncing(true);
+    await syncShopee();
+    setIsSyncing(false);
+  };
 
   const getTierLabel = () => {
     switch (subscriptionTier) {
@@ -78,43 +94,68 @@ export const Header: React.FC = () => {
           </button>
 
           {storeDropdownOpen && (
-            <div className="absolute left-0 mt-2 w-72 rounded-xl border border-slate-800 bg-slate-900 p-2 shadow-2xl dark:border-slate-700 dark:bg-slate-900 light:border-slate-200 light:bg-white z-50">
-              <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Pilih Toko Shopee (Multi-Store)
+            <div className="absolute left-0 mt-2 w-72 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl dark:border-slate-700 dark:bg-slate-900 light:border-slate-200 light:bg-white z-50">
+              <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                <span>Toko Anda ({stores.length}/{activePlan.maxStores})</span>
+                <span className="text-[10px] font-mono text-orange-400">{currentUser?.subscriptionPlan}</span>
               </div>
-              <div className="space-y-1">
-                {stores.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => {
-                      setCurrentStoreId(s.id);
-                      setStoreDropdownOpen(false);
-                    }}
-                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs transition ${
-                      s.id === currentStoreId
-                        ? 'bg-orange-500/15 text-orange-400 font-semibold'
-                        : 'text-slate-300 hover:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-800 light:text-slate-700 light:hover:bg-slate-100'
-                    }`}
-                  >
-                    <div>
-                      <div className="font-medium">{s.name}</div>
-                      <div className="text-[10px] text-slate-400">{s.category}</div>
-                    </div>
-                    {s.id === currentStoreId && (
-                      <span className="h-2 w-2 rounded-full bg-orange-500"></span>
-                    )}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-2 border-t border-slate-800 pt-2 text-[10px] text-slate-400 px-3 flex items-center justify-between">
-                <span>Isolasi data aktif per toko</span>
-                <span className="text-emerald-400">Tersinkron</span>
+
+              {stores.length === 0 ? (
+                <div className="p-3 text-center text-xs text-slate-400">
+                  Belum ada toko Shopee terhubung.
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {stores.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        setCurrentStoreId(s.id);
+                        setStoreDropdownOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs transition ${
+                        s.id === currentStoreId
+                          ? 'bg-orange-500/15 text-orange-400 font-semibold border border-orange-500/30'
+                          : 'text-slate-300 hover:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-800 light:text-slate-700 light:hover:bg-slate-100'
+                      }`}
+                    >
+                      <div>
+                        <div className="font-medium text-white">{s.name}</div>
+                        <div className="text-[10px] text-slate-400">{s.category}</div>
+                      </div>
+                      {s.id === currentStoreId && (
+                        <span className="h-2 w-2 rounded-full bg-orange-500"></span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Add Store Button (respecting maxStores) */}
+              <div className="mt-2 border-t border-slate-800 pt-2">
+                <button
+                  onClick={() => {
+                    setStoreDropdownOpen(false);
+                    const activeConns = userStoreConnections.filter(
+                      (c) => c.status === 'CONNECTED' || c.status === 'CONNECTING'
+                    );
+                    if (activeConns.length >= activePlan.maxStores) {
+                      setUpgradeModalOpen(true);
+                    } else {
+                      setShopeeModalOpen(true);
+                    }
+                  }}
+                  className="w-full py-1.5 px-3 rounded-xl border border-dashed border-orange-500/40 hover:bg-orange-500/10 text-orange-400 font-bold text-xs transition text-center flex items-center justify-center gap-1.5"
+                >
+                  <span>+ Tambah Toko Shopee</span>
+                  <span className="text-[10px] text-slate-400 font-mono">(Maks {activePlan.maxStores})</span>
+                </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Shopee Connection Center Widget (Phase 15 & 20) */}
+        {/* Shopee Connection Center Widget (Section 7 Spec) */}
         {shopeeConnectionState.status === 'CONNECTED' ? (
           <div className="hidden lg:flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">
             <div className="flex items-center gap-1.5">
@@ -130,10 +171,14 @@ export const Header: React.FC = () => {
               )}
             </div>
             <button
-              onClick={() => setShopeeModalOpen(true)}
-              className="ml-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-200 transition border border-emerald-500/40"
+              onClick={handleQuickSync}
+              disabled={isSyncing}
+              className="ml-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-200 transition border border-emerald-500/40 flex items-center gap-1"
             >
-              [Sync Sekarang]
+              {isSyncing ? (
+                <span className="h-2.5 w-2.5 border-2 border-emerald-300 border-t-transparent rounded-full animate-spin" />
+              ) : null}
+              <span>[Sync Sekarang]</span>
             </button>
           </div>
         ) : (
@@ -142,7 +187,7 @@ export const Header: React.FC = () => {
               <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></span>
               <span className="font-bold text-[11px]">🟡 Belum terhubung ke Shopee</span>
               <span className="text-[10px] text-amber-400/80 border-l border-amber-500/30 pl-1.5">
-                Mode Simulasi Lokal
+                {isSimulationMode ? 'Mode Simulasi' : 'Toko Belum Terikat'}
               </span>
             </div>
             <button
@@ -292,6 +337,116 @@ export const Header: React.FC = () => {
             <Moon className="h-4 w-4 text-indigo-400" />
           )}
         </button>
+
+        {/* User Account / Auth Dropdown */}
+        {currentUser ? (
+          <div className="relative">
+            <button
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-750 transition text-left"
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500 font-bold text-xs text-white shadow-sm">
+                {currentUser.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="hidden md:block">
+                <div className="text-xs font-bold text-white flex items-center gap-1.5 leading-none">
+                  <span className="truncate max-w-[100px]">{currentUser.name.split(' ')[0]}</span>
+                  {currentUser.role === 'ADMIN' && (
+                    <span className="px-1.5 py-0.2 rounded bg-indigo-500/30 text-indigo-300 text-[9px] font-mono uppercase font-bold">
+                      Admin
+                    </span>
+                  )}
+                </div>
+                <div className="text-[10px] text-orange-400 font-medium leading-none mt-1">
+                  {currentUser.subscriptionPlan}
+                </div>
+              </div>
+              <ChevronDown className="h-3 w-3 text-slate-400" />
+            </button>
+
+            {userMenuOpen && (
+              <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-50 text-xs">
+                <div className="p-2 border-b border-slate-800 mb-1">
+                  <div className="font-bold text-white truncate">{currentUser.name}</div>
+                  <div className="text-[11px] text-slate-400 truncate">{currentUser.email}</div>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <span className="px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-bold text-[10px]">
+                      {currentUser.subscriptionPlan}
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        currentUser.subscriptionStatus === 'ACTIVE'
+                          ? 'bg-emerald-500/20 text-emerald-300'
+                          : 'bg-amber-500/20 text-amber-300'
+                      }`}
+                    >
+                      {currentUser.subscriptionStatus}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setCurrentView('profile');
+                    setUserMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800 transition"
+                >
+                  Profil Akun
+                </button>
+
+                <button
+                  onClick={() => {
+                    setCurrentView('pricing');
+                    setUserMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800 transition"
+                >
+                  Pilihan Paket & Upgrade
+                </button>
+
+                {currentUser.role === 'ADMIN' && (
+                  <button
+                    onClick={() => {
+                      setCurrentView('admin-dashboard');
+                      setUserMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-xl text-indigo-300 bg-indigo-950/40 hover:bg-indigo-900/60 font-semibold transition my-0.5"
+                  >
+                    Admin Console
+                  </button>
+                )}
+
+                <div className="border-t border-slate-800 mt-1 pt-1">
+                  <button
+                    onClick={() => {
+                      logout();
+                      setUserMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-500/10 transition font-semibold"
+                  >
+                    Keluar (Logout)
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentView('login')}
+              className="text-xs font-semibold text-slate-300 hover:text-white px-2.5 py-1.5 transition"
+            >
+              Masuk
+            </button>
+            <button
+              onClick={() => setCurrentView('register')}
+              className="px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-xs font-bold text-white shadow-md shadow-orange-500/20 transition"
+            >
+              Daftar
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );

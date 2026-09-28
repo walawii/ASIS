@@ -72,16 +72,22 @@ export const LandingPageView: React.FC = () => {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setCurrentView('dashboard')}
-            className="text-xs font-semibold text-slate-300 hover:text-white transition"
+            onClick={() => setCurrentView('pricing')}
+            className="hidden sm:inline text-xs font-semibold text-slate-300 hover:text-white transition"
           >
-            Buka App Dashboard
+            Pilihan Paket
           </button>
           <button
-            onClick={() => setCurrentView('new-pricing')}
+            onClick={() => setCurrentView('login')}
+            className="text-xs font-semibold text-slate-300 hover:text-white transition px-2 py-1"
+          >
+            Masuk
+          </button>
+          <button
+            onClick={() => setCurrentView('register')}
             className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-xs font-bold text-white shadow-lg shadow-orange-500/20 transition active:scale-98"
           >
-            Hitung Profit Sekarang
+            Daftar Gratis
           </button>
         </div>
       </nav>
@@ -106,18 +112,18 @@ export const LandingPageView: React.FC = () => {
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
-            onClick={() => setCurrentView('dashboard')}
+            onClick={() => setCurrentView('register')}
             className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-orange-500 hover:bg-orange-600 text-sm font-bold text-white shadow-xl shadow-orange-500/25 active:scale-98 transition flex items-center justify-center gap-2"
           >
-            <span>Mulai Gratis Sekarang</span>
+            <span>Daftar Akun Gratis Sekarang</span>
             <ArrowRight className="h-4 w-4" />
           </button>
 
           <button
-            onClick={() => setCurrentView('new-pricing')}
+            onClick={() => setCurrentView('dashboard')}
             className="w-full sm:w-auto px-6 py-3.5 rounded-2xl border border-slate-700 bg-slate-900 hover:bg-slate-800 text-sm font-semibold text-slate-200 transition"
           >
-            Hitung Profit Produk Baru
+            Buka Demo Workspace
           </button>
         </div>
 

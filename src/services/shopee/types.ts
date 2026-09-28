@@ -11,7 +11,59 @@ export type ShopeeConnectionStatus =
   | 'CONNECTING'
   | 'CONNECTED'
   | 'TOKEN_EXPIRED'
+  | 'REAUTH_REQUIRED'
   | 'ERROR';
+
+export interface StoreConnection {
+  id: string;
+  userId: string;
+  platform: 'SHOPEE';
+  shopId: string;
+  shopName: string;
+  region: string;
+  status: ShopeeConnectionStatus;
+  /** Server-side only encrypted tokens (never sent to client) */
+  accessTokenEncrypted?: string;
+  refreshTokenEncrypted?: string;
+  accessTokenExpiresAt?: string;
+  refreshTokenExpiresAt?: string;
+  connectedAt?: string;
+  updatedAt: string;
+  lastSyncAt?: string;
+}
+
+export interface ClientStoreConnection {
+  id: string;
+  userId: string;
+  platform: 'SHOPEE';
+  shopId: string;
+  shopName: string;
+  region: string;
+  status: ShopeeConnectionStatus;
+  connectedAt?: string;
+  updatedAt: string;
+  lastSyncAt?: string;
+}
+
+export interface ShopeeOAuthInitResponse {
+  authUrl: string;
+  state: string;
+  expiresInSeconds: number;
+}
+
+export interface ShopeeOAuthCallbackResponse {
+  success: boolean;
+  connection: ClientStoreConnection;
+  message?: string;
+}
+
+export interface ShopeeSyncResponse {
+  success: boolean;
+  syncedAt: string;
+  productsSynced: number;
+  ordersSynced: number;
+  shopName: string;
+}
 
 export interface ShopeeCredentialsConfig {
   partnerId?: string;

@@ -52,12 +52,22 @@ import { ImportDataPage } from './components/import/ImportDataPage.tsx';
 import { SettingsPage } from './components/settings/SettingsPage.tsx';
 import { SubscriptionPage } from './components/settings/SubscriptionPage.tsx';
 
+// SaaS Foundation V2 Pages
+import { LoginPage } from './components/auth/LoginPage.tsx';
+import { RegisterPage } from './components/auth/RegisterPage.tsx';
+import { EmailVerificationPage } from './components/auth/EmailVerificationPage.tsx';
+import { PricingPublicPage } from './components/auth/PricingPublicPage.tsx';
+import { UserProfilePage } from './components/user/UserProfilePage.tsx';
+import { AdminDashboardPage } from './components/admin/AdminDashboardPage.tsx';
+import { SubscriptionGatePage } from './components/user/SubscriptionGatePage.tsx';
+
 // Unit Test Runners
 import { runCalculationEngineTests } from './utils/calculatorEngine.test.ts';
 import { runTrueProfitEngineTests } from './services/profitEngine/profitEngine.test.ts';
+import { runAuthServiceTests } from './services/auth/authService.test.ts';
 
 const AppContent: React.FC = () => {
-  const { currentView } = useApp();
+  const { currentView, currentUser } = useApp();
 
   // Run calculation tests once on app boot
   useEffect(() => {
@@ -74,8 +84,16 @@ const AppContent: React.FC = () => {
     } else {
       console.warn('⚠️ Some true profit engine tests failed:', trueProfitTests.results);
     }
+
+    const authTests = runAuthServiceTests();
+    if (authTests.passed) {
+      console.log('✅ ASIS SELLER SaaS Foundation: Auth, Roles, Plans & Access Control Tests Passed!');
+    } else {
+      console.warn('⚠️ Some SaaS foundation tests failed:', authTests.results);
+    }
   }, []);
 
+  // Public standalone views
   if (currentView === 'landing-page') {
     return (
       <>
@@ -85,6 +103,32 @@ const AppContent: React.FC = () => {
         <FormulaExplanationModal />
       </>
     );
+  }
+
+  if (currentView === 'login') {
+    return <LoginPage />;
+  }
+
+  if (currentView === 'register') {
+    return <RegisterPage />;
+  }
+
+  if (currentView === 'verify-email') {
+    return <EmailVerificationPage />;
+  }
+
+  if (currentView === 'pricing') {
+    return <PricingPublicPage />;
+  }
+
+  // Admin exclusive standalone dashboard
+  if (
+    currentView === 'admin-dashboard' ||
+    currentView === 'admin-users' ||
+    currentView === 'admin-plans' ||
+    currentView === 'admin-subscriptions'
+  ) {
+    return <AdminDashboardPage />;
   }
 
   const renderActiveView = () => {
@@ -159,9 +203,16 @@ const AppContent: React.FC = () => {
         return <ImportDataPage />;
       case 'settings':
         return <SettingsPage />;
+      case 'profile':
+        return <UserProfilePage />;
+      case 'user-subscription':
       case 'subscription':
         return <SubscriptionPage />;
       default:
+        // Subscription Gate for non-admin users with inactive subscription
+        if (currentUser && currentUser.role !== 'ADMIN' && currentUser.subscriptionStatus !== 'ACTIVE') {
+          return <SubscriptionGatePage />;
+        }
         return <DashboardPage />;
     }
   };

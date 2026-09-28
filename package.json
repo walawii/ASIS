@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx -e \"import { runTrueProfitEngineTests } from './src/services/profitEngine/profitEngine.test.ts'; import { runCalculationEngineTests } from './src/utils/calculatorEngine.test.ts'; import { runProductLaunchTests } from './src/services/productLaunch/productLaunch.test.ts'; const t1 = runTrueProfitEngineTests(); const t2 = runCalculationEngineTests(); const t3 = runProductLaunchTests(); if (!t1.passed || !t2.passed || !t3.passed) process.exit(1); console.log('All ' + (t1.results.length + t2.results.length + t3.results.length) + ' business unit & regression tests passed.');\""
+    "test": "tsx -e \"import { runTrueProfitEngineTests } from './src/services/profitEngine/profitEngine.test.ts'; import { runCalculationEngineTests } from './src/utils/calculatorEngine.test.ts'; import { runProductLaunchTests } from './src/services/productLaunch/productLaunch.test.ts'; const t1 = runTrueProfitEngineTests(); const t2 = runCalculationEngineTests(); const t3 = runProductLaunchTests(); if (!t1.passed || !t2.passed || !t3.passed) process.exit(1); console.log('All ' + (t1.results.length + t2.results.length + t3.results.length) + ' business unit & regression tests passed.');\"",
+    "test:saas": "tsx -e \"import { runAuthServiceTests } from './src/services/auth/authService.test.ts'; import { runShopeeMultiTenantTests } from './src/services/shopee/shopeeMultiTenant.test.ts'; const a = runAuthServiceTests(); const s = runShopeeMultiTenantTests(); if (!a.passed || !s.passed) process.exit(1); console.log('All ' + (a.results.length + s.results.length) + ' SaaS & Multi-Tenant Shopee tests passed.');\"",
+    "test:all": "npm test && npm run test:saas"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

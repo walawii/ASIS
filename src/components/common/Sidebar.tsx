@@ -36,6 +36,7 @@ import {
   ShieldCheck,
   ArrowDownToLine,
   BookOpen,
+  UserCheck,
 } from 'lucide-react';
 
 interface NavItem {
@@ -58,11 +59,33 @@ export const Sidebar: React.FC = () => {
     isFeatureAccessible,
     opportunities,
     unreadAlertCount,
+    currentUser,
   } = useApp();
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const sections: NavSection[] = [
+    ...(currentUser?.role === 'ADMIN'
+      ? [
+          {
+            title: 'ADMIN CONSOLE',
+            items: [
+              {
+                id: 'admin-dashboard' as AppView,
+                label: 'Admin Dashboard',
+                icon: ShieldCheck,
+                badge: 'ADMIN',
+                badgeColor: 'bg-indigo-600 text-white font-bold',
+              },
+              {
+                id: 'admin-fee-rules' as AppView,
+                label: 'Master Fee Rules',
+                icon: Settings,
+              },
+            ],
+          },
+        ]
+      : []),
     {
       title: 'OVERVIEW',
       items: [
@@ -187,8 +210,9 @@ export const Sidebar: React.FC = () => {
     {
       title: 'PENGATURAN',
       items: [
+        { id: 'profile' as AppView, label: 'Profil Akun', icon: UserCheck },
         { id: 'settings', label: 'Pengaturan Toko & Fee', icon: Settings },
-        { id: 'subscription', label: 'Paket & Subscription', icon: CreditCard },
+        { id: 'pricing' as AppView, label: 'Paket & Upgrade', icon: CreditCard },
       ],
     },
   ];
